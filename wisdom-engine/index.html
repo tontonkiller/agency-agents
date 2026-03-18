@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>The Wisdom Engine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #14141f;
+    --surface2: #1e1e2e;
+    --gold: #d4a54a;
+    --gold-dim: #8a6e30;
+    --cyan: #4ecdc4;
+    --green: #45b764;
+    --blue: #5b8def;
+    --magenta: #c678dd;
+    --red: #e06c75;
+    --text: #e0e0e0;
+    --text-dim: #666680;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── Title Screen ─── */
+  .title-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 24px;
+    animation: fadeIn 1s ease;
+  }
+
+  .title-screen h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 28px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    line-height: 1.3;
+  }
+
+  .title-screen .subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  .agents-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .agent-tag {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    font-size: 14px;
+    border-left: 3px solid var(--text-dim);
+  }
+
+  .agent-tag .icon { font-size: 20px; }
+  .agent-tag .name { font-weight: 600; }
+  .agent-tag .phil { color: var(--text-dim); font-size: 12px; }
+
+  .agent-tag.taoisme { border-left-color: var(--green); }
+  .agent-tag.stoicisme { border-left-color: var(--blue); }
+  .agent-tag.existentialisme { border-left-color: var(--magenta); }
+
+  /* ─── Buttons ─── */
+  .btn {
+    display: block;
+    width: 100%;
+    max-width: 340px;
+    padding: 14px 24px;
+    border: 1px solid var(--gold-dim);
+    background: transparent;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn:active, .btn:hover {
+    background: var(--gold);
+    color: var(--bg);
+  }
+
+  /* ─── Game Screen ─── */
+  .game-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .phase-header {
+    text-align: center;
+    padding: 16px 0 8px;
+  }
+
+  .phase-header h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    color: var(--gold);
+  }
+
+  .phase-header .lieu {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .situation {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  /* ─── Agent Cards ─── */
+  .agents-section h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  .agent-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--text-dim);
+    animation: slideUp 0.4s ease;
+  }
+
+  .agent-card.taoisme { border-left-color: var(--green); }
+  .agent-card.stoicisme { border-left-color: var(--blue); }
+  .agent-card.existentialisme { border-left-color: var(--magenta); }
+
+  .agent-card .agent-name {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .agent-card.taoisme .agent-name { color: var(--green); }
+  .agent-card.stoicisme .agent-name { color: var(--blue); }
+  .agent-card.existentialisme .agent-name { color: var(--magenta); }
+
+  .agent-card .agent-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #bbb;
+    font-style: italic;
+  }
+
+  /* ─── Choices ─── */
+  .choices-section h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  .choice-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: var(--surface2);
+    border: 1px solid #2a2a3e;
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .choice-btn:active {
+    background: var(--gold);
+    color: var(--bg);
+    border-color: var(--gold);
+  }
+
+  @media (hover: hover) {
+    .choice-btn:hover {
+      border-color: var(--gold-dim);
+      background: var(--surface);
+    }
+  }
+
+  .choice-btn .choice-num {
+    color: var(--gold);
+    font-weight: 600;
+    margin-right: 8px;
+  }
+
+  /* ─── Result ─── */
+  .result-card {
+    background: linear-gradient(135deg, #1a2a1a, #14141f);
+    border: 1px solid #2a4a2a;
+    border-radius: var(--radius);
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.7;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .result-card h3 {
+    color: var(--green);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  /* ─── Radar Chart (Canvas) ─── */
+  .radar-container {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+
+  .radar-container h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  canvas#radar {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  /* ─── End Screen ─── */
+  .end-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    animation: fadeIn 0.8s ease;
+  }
+
+  .end-screen h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 22px;
+    color: var(--gold);
+  }
+
+  .dominant-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    font-size: 14px;
+    color: var(--gold);
+  }
+
+  .ending-text {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #bbb;
+    max-width: 360px;
+    font-style: italic;
+  }
+
+  .proto-footer {
+    color: var(--text-dim);
+    font-size: 11px;
+    padding-top: 20px;
+    border-top: 1px solid #1e1e2e;
+    text-align: center;
+  }
+
+  /* ─── Animations ─── */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ─── Game Data ──────────────────────────────────────────────────────
+
+const AGENTS = {
+  taoisme: { name: "Laozi", icon: "\u262F", philosophy: "Wu Wei \u2014 agir sans forcer" },
+  stoicisme: { name: "Marc Aur\u00E8le", icon: "\u2696", philosophy: "Contr\u00F4le seulement ce qui d\u00E9pend de toi" },
+  existentialisme: { name: "Simone de Beauvoir", icon: "\u2726", philosophy: "L'existence pr\u00E9c\u00E8de l'essence" },
+};
+
+const SCENARIO = {
+  title: "The Invisible Hand",
+  lieu: "Venise, 1486",
+  intro: "Venise brille sous le soleil. Le Doge Marco Barbarigo r\u00E8gne par la corruption\u00A0: taxes \u00E9crasantes, espions dans chaque quartier, et une alliance secr\u00E8te avec les Templiers.\n\nTu es un Assassin envoy\u00E9 pour lib\u00E9rer la ville. Mais comment\u00A0?",
+  phases: [
+    {
+      title: "Acte I \u2014 L'Approche",
+      situation: "Tu arrives \u00E0 Venise par bateau. Le port grouille de gardes. Un contact t'attend dans une taverne, mais tu as aussi rep\u00E9r\u00E9 un marchand m\u00E9content et un pr\u00EAtre qui pr\u00EAche contre le Doge.",
+      agents: {
+        taoisme: "L'eau ne force pas son chemin \u00E0 travers la pierre \u2014 elle la contourne. Observe d'abord. Les courants de m\u00E9contentement existent d\u00E9j\u00E0. Laisse-les te guider.",
+        stoicisme: "Tu ne contr\u00F4les pas la ville, ni le Doge, ni les gardes. Tu contr\u00F4les seulement tes choix. Que peux-tu faire maintenant, avec vertu, sans d\u00E9pendre du r\u00E9sultat\u00A0?",
+        existentialisme: "Personne ne t'a assign\u00E9 un destin. Tu es libre de choisir ton approche. Mais souviens-toi\u00A0: chaque choix te d\u00E9finit. Il n'y a pas de \u00AB\u00A0bonne r\u00E9ponse\u00A0\u00BB \u2014 il y a TA r\u00E9ponse.",
+      },
+      choices: [
+        { text: "Observer la ville pendant 3 jours sans agir", effects: { taoisme: 3, zen: 1 }, result: "Pendant trois jours, tu observes les flux de la ville. Tu d\u00E9couvres les r\u00E9seaux de corruption, les points faibles, et surtout \u2014 le m\u00E9contentement profond du peuple. Tu as une carte mentale compl\u00E8te de Venise." },
+        { text: "Aller directement au contact dans la taverne", effects: { stoicisme: 2, confucianisme: 1 }, result: "Ton contact, Antonio, est un marchand ruin\u00E9 par le Doge. Il te donne des informations cl\u00E9s et te pr\u00E9sente un r\u00E9seau de r\u00E9sistants. Tu as des alli\u00E9s, mais tu d\u00E9pends d'eux." },
+        { text: "Approcher le marchand ET le pr\u00EAtre \u2014 forger ta propre voie", effects: { existentialisme: 3, soufisme: 1 }, result: "Tu cr\u00E9es tes propres alliances, hors des sentiers battus. Le marchand veut la justice \u00E9conomique. Le pr\u00EAtre veut la justice morale. Ensemble, ils repr\u00E9sentent la voix du peuple." },
+      ],
+    },
+    {
+      title: "Acte II \u2014 Le Plan",
+      situation: "Tu as compris la situation. Le Doge organise un grand bal dans 5 jours. C'est une opportunit\u00E9. Mais le bal est aussi un pi\u00E8ge \u2014 le Doge soup\u00E7onne un complot.\n\nComment veux-tu agir\u00A0?",
+      agents: {
+        taoisme: "Le roseau plie mais ne rompt pas. N'attaque pas le Doge de front. Modifie les conditions autour de lui\u00A0: ses alli\u00E9s, ses finances, sa r\u00E9putation. Le syst\u00E8me fera le reste.",
+        stoicisme: "Pr\u00E9pare-toi au pire. Si le plan \u00E9choue, que feras-tu\u00A0? La vertu n'est pas dans le succ\u00E8s, mais dans l'intention juste. Agis selon tes principes, quel que soit le r\u00E9sultat.",
+        existentialisme: "Ce bal est un th\u00E9\u00E2tre. Tout le monde y joue un r\u00F4le. Toi seul peux choisir de ne PAS jouer le jeu \u2014 ou de le renverser compl\u00E8tement. L'absurde est ta libert\u00E9.",
+      },
+      choices: [
+        { text: "Saboter les finances du Doge \u2014 couper ses soutiens", effects: { taoisme: 3, confucianisme: 2 }, result: "Tu d\u00E9tournes les livraisons d'or, r\u00E9v\u00E8les les comptes secrets. Les marchands retournent leur veste. Le Doge perd ses alli\u00E9s un par un \u2014 comme un arbre dont on coupe les racines." },
+        { text: "Infiltrer le bal et assassiner le Doge", effects: { stoicisme: 2, existentialisme: 2 }, result: "Le chemin direct. Tu t'entra\u00EEnes, tu te pr\u00E9pares. Tu acceptes que tu pourrais mourir. C'est un choix radical, irr\u00E9versible, mais clair. Ton destin est entre tes mains." },
+        { text: "Utiliser le bal pour retourner le peuple contre le Doge", effects: { existentialisme: 2, soufisme: 2, confucianisme: 1 }, result: "Tu orchestres une r\u00E9v\u00E9lation publique. Au milieu du bal, les preuves de corruption \u00E9clatent. Le peuple se soul\u00E8ve \u2014 non pas parce que tu l'as forc\u00E9, mais parce qu'il a enfin vu la v\u00E9rit\u00E9." },
+      ],
+    },
+    {
+      title: "Acte III \u2014 La Chute du Doge",
+      situation: "Le moment d\u00E9cisif approche. Le Doge est affaibli mais dangereux. Il a d\u00E9couvert qu'un complot existe. Ses gardes sont en alerte maximale.\n\nComment ach\u00E8ves-tu ta mission\u00A0?",
+      agents: {
+        taoisme: "L'eau qui a creus\u00E9 la montagne n'a jamais frapp\u00E9 la pierre \u2014 elle a simplement coul\u00E9. Le Doge est d\u00E9j\u00E0 tomb\u00E9. Il ne le sait pas encore. Laisse la gravit\u00E9 faire.",
+        stoicisme: "Quoi qu'il arrive maintenant, tu as agi avec vertu. Le r\u00E9sultat n'est pas entre tes mains. Fais ce qui est juste et accepte les cons\u00E9quences avec dignit\u00E9.",
+        existentialisme: "C'est ici que tout se joue. Il n'y a pas de filet. Pas de destin. Pas d'excuse. Ton choix final te d\u00E9finira \u00E0 jamais. Choisis en conscience.",
+      },
+      choices: [
+        { text: "Ne rien faire \u2014 le syst\u00E8me s'effondre de lui-m\u00EAme", effects: { taoisme: 5, zen: 2 }, result: "Tu restes dans l'ombre. Les alli\u00E9s du Doge l'abandonnent. Le peuple refuse de lui ob\u00E9ir. Les gardes d\u00E9posent les armes. Le Doge tombe \u2014 sans qu'une seule lame soit tir\u00E9e.\n\nC'est la voie du Wu Wei\u00A0: l'action par la non-action." },
+        { text: "Affronter le Doge en face \u00E0 face, avec honneur", effects: { stoicisme: 4, existentialisme: 2 }, result: "Tu te pr\u00E9sentes devant le Doge. Seul. Tu lui offres le choix\u00A0: abdiquer ou combattre. Il choisit le combat.\n\nLe duel est bref. Tu gagnes \u2014 mais tu lui accordes la dignit\u00E9 d'une fin honorable." },
+        { text: "Dispara\u00EEtre \u2014 laisser Venise \u00E9crire sa propre histoire", effects: { existentialisme: 4, soufisme: 3 }, result: "Tu quittes Venise. Le peuple, \u00E9veill\u00E9, fait sa propre r\u00E9volution. Tu ne seras jamais cr\u00E9dit\u00E9. Tu ne seras jamais connu.\n\nMais Venise est libre \u2014 et cette libert\u00E9 leur appartient, pas \u00E0 toi." },
+      ],
+    },
+  ],
+};
+
+const ENDINGS = {
+  taoisme: "Tu as suivi la voie du Wu Wei. Sans forcer, tu as laiss\u00E9 les syst\u00E8mes se transformer d'eux-m\u00EAmes. La sagesse n'est pas dans l'action \u2014 mais dans la compr\u00E9hension du moment juste.",
+  stoicisme: "Tu as agi avec vertu, sans te soucier du r\u00E9sultat. Marc Aur\u00E8le serait fier\u00A0: tu as contr\u00F4l\u00E9 ce qui d\u00E9pendait de toi et accept\u00E9 le reste avec s\u00E9r\u00E9nit\u00E9.",
+  existentialisme: "Tu as choisi librement, en assumant chaque cons\u00E9quence. Beauvoir dirait que tu as cr\u00E9\u00E9 ton essence par tes actes. Ta libert\u00E9 a donn\u00E9 la libert\u00E9 aux autres.",
+  confucianisme: "Tu as agi avec responsabilit\u00E9 sociale. Tes alliances et ton sens du devoir collectif ont transform\u00E9 la ville de l'int\u00E9rieur.",
+  soufisme: "Tu t'es transform\u00E9 toi-m\u00EAme avant de transformer le monde. La v\u00E9rit\u00E9 int\u00E9rieure a rayon\u00E9 vers l'ext\u00E9rieur.",
+  zen: "Dans le silence et l'attention, tu as trouv\u00E9 la clart\u00E9. Chaque geste \u00E9tait pr\u00E9cis, chaque instant v\u00E9cu pleinement.",
+};
+
+const AXES = ["taoisme", "stoicisme", "existentialisme", "confucianisme", "soufisme", "zen"];
+const AXIS_LABELS = ["Tao\u00EFsme", "Sto\u00EFcisme", "Existentialisme", "Confucianisme", "Soufisme", "Zen"];
+
+// ─── State ──────────────────────────────────────────────────────────
+
+let profile = {};
+AXES.forEach(a => profile[a] = 0);
+let currentPhase = 0;
+
+const app = document.getElementById("app");
+
+// ─── Rendering ──────────────────────────────────────────────────────
+
+function renderTitle() {
+  app.innerHTML = `
+    <div class="title-screen">
+      <div>
+        <h1>THE WISDOM<br>ENGINE</h1>
+        <p class="subtitle">Venise, 1486 \u2014 Premier Prototype</p>
+      </div>
+      <p style="color: var(--text-dim); font-size: 13px; max-width: 300px;">
+        3 agents philosophiques te guideront.<br>
+        Tes choix fa\u00E7onnent ton profil de sagesse.
+      </p>
+      <div class="agents-preview">
+        ${Object.entries(AGENTS).map(([key, a]) => `
+          <div class="agent-tag ${key}">
+            <span class="icon">${a.icon}</span>
+            <div>
+              <div class="name">${a.name}</div>
+              <div class="phil">${a.philosophy}</div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+      <button class="btn" onclick="renderIntro()">Commencer</button>
+    </div>
+  `;
+}
+
+function renderIntro() {
+  app.innerHTML = `
+    <div class="game-screen">
+      <div class="phase-header">
+        <h2>${SCENARIO.title}</h2>
+        <div class="lieu">${SCENARIO.lieu}</div>
+      </div>
+      <div class="situation">${SCENARIO.intro.replace(/\n/g, "<br>")}</div>
+      <button class="btn" onclick="renderPhase(0)" style="align-self: center;">Continuer</button>
+    </div>
+  `;
+}
+
+function renderPhase(idx) {
+  currentPhase = idx;
+  const phase = SCENARIO.phases[idx];
+
+  app.innerHTML = `
+    <div class="game-screen">
+      <div class="phase-header">
+        <h2>${phase.title}</h2>
+        <div class="lieu">${SCENARIO.lieu}</div>
+      </div>
+      <div class="situation">${phase.situation.replace(/\n/g, "<br>")}</div>
+      <div class="agents-section">
+        <h3>Les sages te conseillent</h3>
+        ${Object.entries(phase.agents).map(([key, text]) => `
+          <div class="agent-card ${key}">
+            <div class="agent-name">${AGENTS[key].icon} ${AGENTS[key].name}</div>
+            <div class="agent-text">\u00AB\u00A0${text}\u00A0\u00BB</div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="choices-section">
+        <h3>Que fais-tu\u00A0?</h3>
+        ${phase.choices.map((c, i) => `
+          <button class="choice-btn" onclick="choose(${idx}, ${i})">
+            <span class="choice-num">${i + 1}.</span> ${c.text}
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `;
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function choose(phaseIdx, choiceIdx) {
+  const phase = SCENARIO.phases[phaseIdx];
+  const choice = phase.choices[choiceIdx];
+
+  // Apply effects
+  for (const [axis, pts] of Object.entries(choice.effects)) {
+    profile[axis] = (profile[axis] || 0) + pts;
+  }
+
+  // Show result
+  app.innerHTML = `
+    <div class="game-screen">
+      <div class="phase-header">
+        <h2>${phase.title}</h2>
+      </div>
+      <div class="result-card">
+        <h3>Cons\u00E9quence</h3>
+        <p>${choice.result.replace(/\n/g, "<br>")}</p>
+      </div>
+      <div class="radar-container">
+        <h3>Profil philosophique</h3>
+        <canvas id="radar" width="560" height="560"></canvas>
+      </div>
+      <button class="btn" onclick="${phaseIdx < SCENARIO.phases.length - 1 ? `renderPhase(${phaseIdx + 1})` : "renderEnd()"}" style="align-self: center;">
+        ${phaseIdx < SCENARIO.phases.length - 1 ? "Continuer" : "Voir le d\u00E9nouement"}
+      </button>
+    </div>
+  `;
+
+  drawRadar();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderEnd() {
+  const dominant = AXES.reduce((a, b) => profile[a] >= profile[b] ? a : b);
+  const dominantLabel = AXIS_LABELS[AXES.indexOf(dominant)];
+  const ending = ENDINGS[dominant] || ENDINGS.taoisme;
+
+  app.innerHTML = `
+    <div class="end-screen">
+      <h2>Mission Accomplie</h2>
+      <p style="color: var(--text-dim); font-size: 13px;">Venise est transform\u00E9e.</p>
+      <div class="dominant-badge">${dominantLabel} \u2014 ${profile[dominant]} pts</div>
+      <p class="ending-text">\u00AB\u00A0${ending}\u00A0\u00BB</p>
+      <div class="radar-container" style="width: 100%; max-width: 340px;">
+        <h3>Ton profil final</h3>
+        <canvas id="radar" width="560" height="560"></canvas>
+      </div>
+      <div class="proto-footer">
+        <p>The Wisdom Engine \u2014 Prototype v0.1</p>
+        <p>12 agents pr\u00E9vus. 3 actifs dans ce proto.</p>
+      </div>
+      <button class="btn" onclick="restart()" style="margin-top: 10px;">Rejouer</button>
+    </div>
+  `;
+
+  drawRadar();
+}
+
+function restart() {
+  AXES.forEach(a => profile[a] = 0);
+  currentPhase = 0;
+  renderTitle();
+}
+
+// ─── Radar Chart (Canvas) ───────────────────────────────────────────
+
+function drawRadar() {
+  const canvas = document.getElementById("radar");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width;
+  const H = canvas.height;
+  const cx = W / 2;
+  const cy = H / 2;
+  const R = W * 0.38;
+  const n = AXES.length;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  for (let ring = 1; ring <= 5; ring++) {
+    const r = (ring / 5) * R;
+    ctx.beginPath();
+    for (let i = 0; i <= n; i++) {
+      const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+      const x = cx + r * Math.cos(angle);
+      const y = cy + r * Math.sin(angle);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Spokes
+  for (let i = 0; i < n; i++) {
+    const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + R * Math.cos(angle), cy + R * Math.sin(angle));
+    ctx.strokeStyle = "rgba(255,255,255,0.06)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Data polygon
+  const maxVal = Math.max(5, ...Object.values(profile));
+  ctx.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const idx = i % n;
+    const val = profile[AXES[idx]] || 0;
+    const r = (val / maxVal) * R;
+    const angle = (Math.PI * 2 * idx) / n - Math.PI / 2;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.fillStyle = "rgba(212, 165, 74, 0.2)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(212, 165, 74, 0.8)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dots + Labels
+  const colors = ["#45b764", "#5b8def", "#c678dd", "#e06c75", "#d4a54a", "#4ecdc4"];
+  ctx.font = "bold 20px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  for (let i = 0; i < n; i++) {
+    const val = profile[AXES[i]] || 0;
+    const r = (val / maxVal) * R;
+    const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+    const x = cx + r * Math.cos(angle);
+    const y = cy + r * Math.sin(angle);
+
+    // Dot
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+
+    // Label
+    const lx = cx + (R + 40) * Math.cos(angle);
+    const ly = cy + (R + 40) * Math.sin(angle);
+    ctx.fillStyle = colors[i];
+    ctx.fillText(AXIS_LABELS[i], lx, ly);
+  }
+}
+
+// ─── Init ───────────────────────────────────────────────────────────
+renderTitle();
+</script>
+</body>
+</html>
