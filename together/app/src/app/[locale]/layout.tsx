@@ -19,12 +19,8 @@ export default async function LocaleLayout({
   const messages = (await import(`@/lib/i18n/messages/${locale}.json`)).default;
 
   return (
-    <html lang={locale}>
-      <body>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeRegistry>{children}</ThemeRegistry>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <ThemeRegistry>{children}</ThemeRegistry>
+    </NextIntlClientProvider>
   );
 }
