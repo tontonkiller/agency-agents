@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/lib/i18n/navigation';
 import BottomNavigation from '@mui/material/BottomNavigation';
@@ -15,21 +15,14 @@ export default function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const getActiveTab = () => {
+  const value = useMemo(() => {
     if (pathname.startsWith('/calendar')) return 0;
     if (pathname.startsWith('/dashboard') || pathname.startsWith('/groups')) return 1;
     if (pathname.startsWith('/profile')) return 2;
     return 1;
-  };
-
-  const [value, setValue] = useState(getActiveTab);
-
-  useEffect(() => {
-    setValue(getActiveTab());
   }, [pathname]);
 
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
     switch (newValue) {
       case 0:
         router.push('/calendar');
